@@ -25,6 +25,9 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
     targets = np.zeros(len(Data['BSE_System_Parameters']['SEED']))
     # print(phis.shape)
     keys = Data['BSE_System_Parameters'].keys()
+    # there is a key in BSE_Double_Compact_Objects called hubble time
+    # that can make it more strict. if it is in a hubble time, we can 
+    # say that it would be observable
     print(keys)
     seed_index = np.where(np.array(list(keys)) == "SEED")[0][0]
     # print(seed_index)
