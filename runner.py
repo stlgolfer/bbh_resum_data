@@ -14,10 +14,12 @@ if __name__ == '__main__':
     for sim in range(NUM_SIMS):
         metallicity = np.random.choice(np.linspace(0.0001,0.03, 1000))
         envelope_eff = np.random.choice(np.linspace(0, 100, 1000))
-        initial_mass1 = np.random.choice(
-            np.linspace(0.1,150,1000)
-        )
-        initial_mass2 = np.random.choice(np.linspace(0.1,150,1000))
+        sigma_bh = np.random.choice(np.linspace(100,300, 1))
+        sigma_ns = np.random.choice(np.linspace(100,300,1))
+        # initial_mass1 = np.random.choice(
+        #     np.linspace(0.1,150,1000)
+        # )
+        # initial_mass2 = np.random.choice(np.linspace(0.1,150,1000))
         # want to use and vary the parameters
         # --initial-mass-function [ -i ]
         # --initial-mass-max
@@ -28,11 +30,13 @@ if __name__ == '__main__':
             'bash',
             'run_compas.sh',
             str(NUM_SYSTEMS_HF if sim < HF_RUNS else NUM_SYSTEMS_LF),
-            str(np.min((initial_mass1, initial_mass2))),
-            str(np.max((initial_mass1, initial_mass2))),
+            str(int(5)),
+            str(int(150)),
             str(metallicity),
             str(envelope_eff),
-            run_name
+            run_name,
+            str(sigma_bh),
+            str(sigma_ns)
             ],capture_output=True,text=True
         )
         with open(f'{run_name}_log.txt', 'w') as file:
@@ -43,14 +47,10 @@ if __name__ == '__main__':
         process_to_h5(
             f'{run_name}/COMPAS_Output/COMPAS_Output.h5',
             theta=np.array([
-                initial_mass1,
-                initial_mass2,
                 metallicity,
                 envelope_eff
             ]),
             theta_headers=np.array([
-                'initial_mass_min',
-                'initial_mass_min',
                 'metallicity',
                 'envelope_eff_alpha'
             ]),

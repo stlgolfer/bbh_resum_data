@@ -67,11 +67,12 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
         print(reloaded_data['phi'])
         print(reloaded_data['phi_labels'][1])
         print(reloaded_data['theta'][0])
+        print(reloaded_data['target'])
         reloaded_data.close()
     return outfile
 
 if __name__ == '__main__':
-    process_to_h5('./COMPAS_Output_12/COMPAS_Output.h5', reload=True)
+    process_to_h5('./COMPAS_Output_6/COMPAS_Output.h5', np.array([0]), np.array(['test']), reload=True)
 
 
 # so, let's first make a script that contains a function that loads a compas file
