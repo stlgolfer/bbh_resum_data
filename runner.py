@@ -7,15 +7,18 @@ import subprocess
 # and pre process the simulation to an h5 file
 if __name__ == '__main__':
     NUM_SIMS = 1000
-    NUM_SYSTEMS_LF = 1000
-    NUM_SYSTEMS_HF = 10*NUM_SYSTEMS_LF
+    DEBUG = False
+    NUM_SYSTEMS_LF = 1000 # 1000 LF
+    NUM_SYSTEMS_HF =  2 if DEBUG else 1000*NUM_SYSTEMS_LF #1M
     HF_RUNS = 4
 
     for sim in range(NUM_SIMS):
+        if DEBUG and sim >= HF_RUNS:
+            break
         metallicity = np.random.choice(np.linspace(0.0001,0.03, 1000))
         envelope_eff = np.random.choice(np.linspace(0, 100, 1000))
-        sigma_bh = np.random.choice(np.linspace(100,300, 1))
-        sigma_ns = np.random.choice(np.linspace(100,300,1))
+        sigma_bh = np.random.choice(np.linspace(30,1000, 1000))
+        sigma_ns = np.random.choice(np.linspace(30,1000,1000))
         # initial_mass1 = np.random.choice(
         #     np.linspace(0.1,150,1000)
         # )
@@ -48,11 +51,15 @@ if __name__ == '__main__':
             f'{run_name}/COMPAS_Output/COMPAS_Output.h5',
             theta=np.array([
                 metallicity,
-                envelope_eff
+                envelope_eff,
+                sigma_bh,
+                sigma_ns
             ]),
             theta_headers=np.array([
                 'metallicity',
-                'envelope_eff_alpha'
+                'envelope_eff_alpha',
+                'sigma_bh',
+                'sigma_ns'
             ]),
             outfile=f'{run_name}_resum.h5',
             reload= True if sim==1 else False

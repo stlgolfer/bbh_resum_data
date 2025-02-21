@@ -57,17 +57,20 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
         Data.close()
 
         phi_dataset = file.create_dataset('phi', phis.T.shape, data=phis.T)
-        target_dataset = file.create_dataset('target', targets.shape, data=targets)
+        target_dataset = file.create_dataset('formed_bh', targets.shape, data=targets)
         file.create_dataset('theta', theta.shape, data=theta)
         file.create_dataset('theta_headers', theta_headers.shape, data=theta_headers.astype('S26'))
     # reload new dataset to view
     if reload:
         reloaded_data = h5.File(outfile)
+        print('---h5 file reload---')
         print(reloaded_data.keys())
         print(reloaded_data['phi'])
         print(reloaded_data['phi_labels'][1])
         print(reloaded_data['theta'][0])
-        print(reloaded_data['target'])
+        for theta_name in reloaded_data['theta_headers']:
+            print(theta_name)
+        print(reloaded_data['formed_bh']) # modify this to have an explicit label
         reloaded_data.close()
     return outfile
 
