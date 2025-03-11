@@ -3,7 +3,7 @@ import numpy as np
 import subprocess
 
 NUM_SIMS = 1000
-DEBUG = False
+DEBUG = True
 NUM_SYSTEMS_LF = 1000 # 1000 LF
 NUM_SYSTEMS_HF =  2 if DEBUG else 1000*NUM_SYSTEMS_LF #1M
 HF_RUNS = 4 # n high fidelities with some parameters
@@ -58,6 +58,17 @@ if __name__ == '__main__':
         envelope_eff = np.random.choice(np.linspace(0, 100, 1000))
         sigma_bh = np.random.choice(np.linspace(30,1000, 1000))
         sigma_ns = np.random.choice(np.linspace(30,1000,1000))
+
+        if DEBUG:
+            run_COMPAS(
+                1000,
+                metallicity,
+                envelope_eff,
+                sigma_bh,
+                sigma_ns,
+                sim
+            )
+            break
 
         if sim < HF_RUNS:
             run_COMPAS(
