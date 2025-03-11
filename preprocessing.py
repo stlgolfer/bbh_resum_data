@@ -48,6 +48,8 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
         print('No DCOs formed')
         for i in range(len(targets)):
             targets[i] = 0
+    # need to put extra flag on DCO for the various things inside there. it's not just dco
+    # we want the bbh which is slightly more rigorously defined
 
     # write data to new h5 file
     with h5.File(outfile, "w") as file:
@@ -55,11 +57,16 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
         print(phi_keys.dtype)
         phi_labels = file.create_dataset('phi_labels', phi_keys.shape, data=phi_keys)
         Data.close()
-
-        phi_dataset = file.create_dataset('phi', phis.T.shape, data=phis.T)
-        target_dataset = file.create_dataset('formed_bh', targets.shape, data=targets)
+        file.create_dataset('phi', phis.T.shape, data=phis.T)
+        file.create_dataset('target', targets.shape, data=targets)
+        target_headers = np.array(["DCOs","BBH Events"])
+        file.create_dataset('target_headers', target_headers.shape, data=target_headers.astype('S26'))
         file.create_dataset('theta', theta.shape, data=theta)
         file.create_dataset('theta_headers', theta_headers.shape, data=theta_headers.astype('S26'))
+        # want a header that says "target" that is a column vector
+        # then another column that has rows that are the values of that target
+        # want some phis to be in separate column that are labeled as "phi fixed"
+        # since they may not actually be set to vary
     # reload new dataset to view
     if reload:
         reloaded_data = h5.File(outfile)
@@ -68,9 +75,9 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
         print(reloaded_data['phi'])
         print(reloaded_data['phi_labels'][1])
         print(reloaded_data['theta'][0])
-        for theta_name in reloaded_data['theta_headers']:
+        for theta_name in reloaded_data['target_headers']:
             print(theta_name)
-        print(reloaded_data['formed_bh']) # modify this to have an explicit label
+        # print(reloaded_data['formed_bh']) # modify this to have an explicit label
         reloaded_data.close()
     return outfile
 
