@@ -5,6 +5,7 @@ import h5py as h5                # for reading the COMPAS data
 import time                      # for finding computation time
 import matplotlib.pyplot as plt  #for plotting
 import warnings
+from compas_python_utils.cosmic_integration.ClassCOMPAS import COMPASData
 
 # Import COMPAS specific scripts
 # compasRootDir = os.environ['COMPAS_ROOT_DIR']
@@ -23,6 +24,7 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
 
     phis = np.zeros((len(Data['BSE_System_Parameters'].keys()), len(Data['BSE_System_Parameters']['SEED'])))
     targets = np.zeros(len(Data['BSE_System_Parameters']['SEED']))
+    bbh_targets = np.zeros(len(Data['BSE_System_Parameters']['SEED']))
     # print(phis.shape)
     keys = Data['BSE_System_Parameters'].keys()
     # there is a key in BSE_Double_Compact_Objects called hubble time
@@ -51,38 +53,62 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
     # need to put extra flag on DCO for the various things inside there. it's not just dco
     # we want the bbh which is slightly more rigorously defined
 
-    # write data to new h5 file
-    with h5.File(outfile, "w") as file:
-        phi_keys = np.array(list(keys)).astype('S26')
-        print(phi_keys.dtype)
-        phi_labels = file.create_dataset('phi_labels', phi_keys.shape, data=phi_keys)
-        Data.close()
-        file.create_dataset('phi', phis.T.shape, data=phis.T)
-        file.create_dataset('target', targets.shape, data=targets)
-        target_headers = np.array(["DCOs","BBH Events"])
-        file.create_dataset('target_headers', target_headers.shape, data=target_headers.astype('S26'))
-        file.create_dataset('theta', theta.shape, data=theta)
-        file.create_dataset('theta_headers', theta_headers.shape, data=theta_headers.astype('S26'))
-        # want a header that says "target" that is a column vector
-        # then another column that has rows that are the values of that target
-        # want some phis to be in separate column that are labeled as "phi fixed"
-        # since they may not actually be set to vary
-    # reload new dataset to view
-    if reload:
-        reloaded_data = h5.File(outfile)
-        print('---h5 file reload---')
-        print(reloaded_data.keys())
-        print(reloaded_data['phi'])
-        print(reloaded_data['phi_labels'][1])
-        print(reloaded_data['theta'][0])
-        for theta_name in reloaded_data['target_headers']:
-            print(theta_name)
-        # print(reloaded_data['formed_bh']) # modify this to have an explicit label
-        reloaded_data.close()
-    return outfile
+    bbhs = COMPASData(pathToData)
+    bbhs.setCOMPASDCOmask(types='BBH', withinHubbleTime=True, pessimistic=True)
+    bbh_failure = False
+    try:
+        bbhs.setCOMPASData()
+        bbh_seeds = set(bbhs.seedsDCO)
+        # similar to before, iterate through every seed in the table and see if that seed is a bbh
+        for i in range(len(bbh_targets)):
+            bbh_targets[i] = 1 if seeds[i] in bbh_seeds else 0
+        print(f'Found {np.sum(bbh_targets)} bbhs')
+        assert int(np.sum(bbh_targets)) <= int(np.sum(targets)), "BBH targets should be less than total DCOs..."
+    except Exception:
+        # there is an issue with the backend code for masking. if there is only 1 seed that fits the mask, it will fail
+        # since we can't really fix this issue, we will skip writing such files
+        # raise NotImplementedError("Backend error with BBHs masking")
+        warnings.warn("BBH backend issue, will not write this file")
+        bbh_failure = True
+
+    if not bbh_failure:
+        # write data to new h5 file
+        with h5.File(outfile, "w") as file:
+            phi_keys = np.array(list(keys)).astype('S26')
+            print(phi_keys.dtype)
+            phi_labels = file.create_dataset('phi_labels', phi_keys.shape, data=phi_keys)
+            Data.close()
+            file.create_dataset('phi', phis.T.shape, data=phis.T)
+            # stack target columns
+            all_targets = np.vstack((targets, bbh_targets)).T
+            file.create_dataset('target', all_targets.shape, data=all_targets)
+            target_headers = np.array(["DCOs","BBH Events"])
+            file.create_dataset('target_headers', target_headers.shape, data=target_headers.astype('S26'))
+            file.create_dataset('theta', theta.shape, data=theta)
+            file.create_dataset('theta_headers', theta_headers.shape, data=theta_headers.astype('S26'))
+            # want a header that says "target" that is a column vector
+            # then another column that has rows that are the values of that target
+            # want some phis to be in separate column that are labeled as "phi fixed"
+            # since they may not actually be set to vary
+        # reload new dataset to view
+        if reload:
+            reloaded_data = h5.File(outfile)
+            print('---h5 file reload---')
+            print(reloaded_data.keys())
+            print(reloaded_data['phi'])
+            print(reloaded_data['phi_labels'][1])
+            print(reloaded_data['theta'][0])
+            print(f'Target: {reloaded_data['target'].shape}')
+            for theta_name in reloaded_data['target_headers']:
+                print(theta_name)
+            # print(reloaded_data['formed_bh']) # modify this to have an explicit label
+            reloaded_data.close()
+        return outfile
+    else:
+        return ""
 
 if __name__ == '__main__':
-    process_to_h5('./COMPAS_Output_6/COMPAS_Output.h5', np.array([0]), np.array(['test']), reload=True)
+    process_to_h5('/home/amigala/projects/bbh_resum/run/COMPAS_1000_0/COMPAS_Output/COMPAS_Output.h5', np.array([0]), np.array(['test']), reload=True)
 
 
 # so, let's first make a script that contains a function that loads a compas file

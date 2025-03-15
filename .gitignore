@@ -1,1 +1,5 @@
 run/*
+COMPAS_Output*
+*.tar.gz
+run_lf/
+*.h5
