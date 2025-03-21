@@ -70,12 +70,27 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
         # raise NotImplementedError("Backend error with BBHs masking")
         warnings.warn("BBH backend issue, will not write this file")
         bbh_failure = True
+    
+    # we need to splice out the keys that are not of interest (ERROR, SEED, record type, unbound, etc..)
+    # try to write this generally
+    keys_exclude = ['Error', 'SEED', 'Record_Type', 'Unbound']
+    indices_exclude = []
+    phi_excluded = np.zeros((len(keys_exclude),phis.shape[1]))
+    for index, ekey in enumerate(keys_exclude):
+        ei = np.where(np.array(list(keys)) == ekey)[0][0]
+        indices_exclude.append(ei)
+        phi_excluded[index] = phis[ei]
+    # print(indices_exclude)
+    # print(phis.shape)
+    new_phi_indices = set(range(phis.shape[0]))-set(indices_exclude)
+    phis = phis[list(new_phi_indices)][:]
 
     if not bbh_failure:
         # write data to new h5 file
         with h5.File(outfile, "w") as file:
             phi_keys = np.array(list(keys)).astype('S26')
-            print(phi_keys.dtype)
+            keys_exclude = np.array(keys_exclude).astype('S26')
+            # print(phi_keys.dtype)
             phi_labels = file.create_dataset('phi_labels', phi_keys.shape, data=phi_keys)
             Data.close()
             file.create_dataset('phi', phis.T.shape, data=phis.T)
@@ -86,6 +101,8 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
             file.create_dataset('target_headers', target_headers.shape, data=target_headers.astype('S26'))
             file.create_dataset('theta', theta.shape, data=theta)
             file.create_dataset('theta_headers', theta_headers.shape, data=theta_headers.astype('S26'))
+            file.create_dataset('excluded_phi_headers', keys_exclude.shape, data=keys_exclude)
+            file.create_dataset('excluded_phi', phi_excluded.shape, data=phi_excluded)
             # want a header that says "target" that is a column vector
             # then another column that has rows that are the values of that target
             # want some phis to be in separate column that are labeled as "phi fixed"
@@ -108,7 +125,7 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
         return ""
 
 if __name__ == '__main__':
-    process_to_h5('/home/amigala/projects/bbh_resum/run/COMPAS_1000_0/COMPAS_Output/COMPAS_Output.h5', np.array([0]), np.array(['test']), reload=True)
+    process_to_h5('/home/amigala/projects/bbh_resum/COMPAS_Output_9/COMPAS_Output.h5', np.array([0]), np.array(['test']), reload=True)
 
 
 # so, let's first make a script that contains a function that loads a compas file
