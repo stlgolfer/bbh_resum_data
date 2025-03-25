@@ -50,6 +50,8 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
         print('No DCOs formed')
         for i in range(len(targets)):
             targets[i] = 0
+        warnings.warn("No DCOs formed, so BBH target query will fail on backend")
+        return ""
     # need to put extra flag on DCO for the various things inside there. it's not just dco
     # we want the bbh which is slightly more rigorously defined
 
@@ -88,7 +90,7 @@ def process_to_h5(pathToData, theta, theta_headers, outfile='test.h5', reload=Fa
     if not bbh_failure:
         # write data to new h5 file
         with h5.File(outfile, "w") as file:
-            phi_keys = np.array(list(keys)).astype('S26')
+            phi_keys = np.array(list(keys)).astype('S26')[list(new_phi_indices)]
             keys_exclude = np.array(keys_exclude).astype('S26')
             # print(phi_keys.dtype)
             phi_labels = file.create_dataset('phi_labels', phi_keys.shape, data=phi_keys)
