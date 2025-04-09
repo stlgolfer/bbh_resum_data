@@ -3,7 +3,7 @@ import numpy as np
 import subprocess
 
 NUM_SIMS = 1000
-DEBUG = True
+DEBUG = False
 NUM_SYSTEMS_LF = 1000 # 1000 LF
 NUM_SYSTEMS_HF =  2 if DEBUG else 1000*NUM_SYSTEMS_LF #1M
 HF_RUNS = 4 # n high fidelities with some parameters
@@ -44,13 +44,26 @@ def run_COMPAS(systems, metallicity, envelope_eff,sigma_bh,sigma_ns, simnumber):
             'sigma_ns'
         ]),
         outfile=f'{run_name}_resum.h5',
-        reload= True if sim==1 else False
+        reload= True if simnumber==1 else False
     )
 
 # in this script we want to be able to run a simulation
 # get it's theta parameters (of interest)
 # and pre process the simulation to an h5 file
 if __name__ == '__main__':
+    # run single
+    # run_COMPAS(NUM_SYSTEMS_LF,
+    #            5.86934636e-03,
+    #            5.33602402e+01,
+    #            3.09731915e-01,
+    #            9.55655425e+02,
+    #            simnumber=1)
+    # run_COMPAS(NUM_SYSTEMS_HF,
+    #            5.86934636e-03,
+    #            5.33602402e+01,
+    #            3.09731915e-01,
+    #            9.55655425e+02,
+    #            simnumber=2)
     for sim in range(NUM_SIMS):
         # if DEBUG and sim >= HF_RUNS:
         #     break
