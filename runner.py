@@ -9,8 +9,8 @@ NUM_SYSTEMS_HF =  2 if DEBUG else 1000*NUM_SYSTEMS_LF #1M
 HF_RUNS = 4 # n high fidelities with some parameters
 # n low fidelities with same parameters are HF
 
-def run_COMPAS(systems, metallicity, envelope_eff,sigma_bh,sigma_ns, simnumber):
-    run_name = f'./run/COMPAS_{systems}_{simnumber}'
+def run_COMPAS(systems, metallicity, envelope_eff,sigma_bh,sigma_ns, simnumber, file_prefix='run'):
+    run_name = f'./{file_prefix}/COMPAS_{systems}_{simnumber}'
     result = subprocess.run([
         'bash',
         'run_compas.sh',
